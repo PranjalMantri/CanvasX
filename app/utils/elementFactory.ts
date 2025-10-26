@@ -1,4 +1,7 @@
+import rough from "roughjs";
 import { CreateElementType, ToolType } from "../types/canvas";
+
+const generator = rough.generator();
 
 export function createElement(
   x1: number,
@@ -8,6 +11,22 @@ export function createElement(
   type: ToolType,
   id: number = Date.now()
 ): CreateElementType {
+  let roughElement;
+
+  switch (type) {
+    case "line":
+      roughElement = generator.line(x1, y1, x2, y2);
+      break;
+
+    case "rectangle":
+      roughElement = generator.rectangle(x1, y1, x2 - x1, y2 - y1);
+      break;
+
+    default:
+      roughElement = null;
+      break;
+  }
+
   return {
     id,
     x1,
@@ -32,5 +51,6 @@ export function createElement(
           break;
       }
     },
+    roughElement,
   };
 }

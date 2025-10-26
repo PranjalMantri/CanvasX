@@ -1,3 +1,5 @@
+import { Drawable } from "roughjs/bin/core";
+
 export type ToolType = "line" | "rectangle";
 
 export interface CreateElementType {
@@ -8,4 +10,5 @@ export interface CreateElementType {
   x2: number;
   y2: number;
   draw: (ctx: CanvasRenderingContext2D) => void;
+  roughElement: Drawable | null;
 }

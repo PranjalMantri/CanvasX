@@ -3,6 +3,20 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createElement } from "./utils/elementFactory";
 import { ToolType } from "./types/canvas";
+import rough from "roughjs";
+import { RoughCanvas } from "roughjs/bin/canvas";
+
+function drawElement(roughCanvas: RoughCanvas, element: any) {
+  switch (element.type) {
+    case "line":
+    case "rectangle":
+      roughCanvas.draw(element.roughElement);
+      break;
+
+    default:
+      throw new Error("Invalid type: ", element.type);
+  }
+}
 
 export default function Home() {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -24,13 +38,16 @@ export default function Home() {
     const context = canvas.getContext("2d");
     if (!context) return;
 
+    const roughCanvas = rough.canvas(canvas);
+
     context.strokeStyle = "black";
     context.lineWidth = 2;
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
     elements.forEach((element: any) => {
-      element.draw(context);
+      // element.draw(context);
+      drawElement(roughCanvas, element);
     });
   }, [dimensions, elements]);
 
