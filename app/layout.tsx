@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CanvasX",
   description: "Realtime Collaborative Whiteboard App",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
