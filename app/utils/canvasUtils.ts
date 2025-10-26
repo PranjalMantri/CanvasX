@@ -5,12 +5,14 @@ export function drawElement(roughCanvas: RoughCanvas, element: ElementType) {
   switch (element.type) {
     case "line":
     case "rectangle":
+    case "circle":
       if (element.roughElement) {
         roughCanvas.draw(element.roughElement);
       }
       break;
 
     default:
+      console.log("Invalid element type: ", element.type);
       break;
   }
 }

@@ -45,7 +45,6 @@ export default function HomePage({
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
-    console.log("action: ", action);
     elements.forEach((element) => {
       drawElement(roughCanvas, element);
     });

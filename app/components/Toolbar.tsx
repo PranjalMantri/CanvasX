@@ -43,6 +43,17 @@ const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool }) => (
     <label htmlFor="tool-rectangle" style={{ marginLeft: "4px" }}>
       Rectangle
     </label>
+    <input
+      type="radio"
+      id="tool-circle"
+      name="toolType"
+      value="circle"
+      checked={tool === "circle"}
+      onChange={() => setTool("circle")}
+    />
+    <label htmlFor="tool-circle" style={{ marginLeft: "4px" }}>
+      Circle
+    </label>
   </div>
 );
 

@@ -11,11 +11,37 @@ export default function useDrawingLogic(tool: ToolType) {
     null
   );
 
+  const updateElement = (
+    id: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    type: ToolType
+  ) => {
+    const elementsCopy = [...elements];
+    const oldElementId = elementsCopy.findIndex((element) => element.id === id);
+
+    switch (type) {
+      case "line":
+      case "rectangle":
+      case "circle":
+        elementsCopy[oldElementId] = createElement(x1, y1, x2, y2, type, id);
+        break;
+
+      default:
+        throw new Error("Invalid type: ", type);
+    }
+
+    setElements(elementsCopy);
+  };
+
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
 
-    if (tool === "line" || tool === "rectangle") {
+    if (tool === "line" || tool === "rectangle" || tool === "circle") {
       setAction("drawing");
+
       const newElement = createElement(
         clientX,
         clientY,
@@ -34,21 +60,10 @@ export default function useDrawingLogic(tool: ToolType) {
 
     if (action === "drawing" && selectedElement) {
       const { id, type, x1, y1 } = selectedElement;
-
-      const updatedElement = createElement(x1, y1, clientX, clientY, type, id);
-
-      setElements((prevElements) => {
-        const elementsCopy = [...prevElements];
-        const index = elementsCopy.findIndex((element) => element.id === id);
-
-        if (index !== -1) {
-          elementsCopy[index] = updatedElement;
-        }
-
-        return elementsCopy;
-      });
+      updateElement(id, x1, y1, clientX, clientY, type);
     }
   };
+
   const handleMouseUp = () => {
     setSelectedElement(null);
     setAction("none");
