@@ -16,6 +16,13 @@ export function createElement(
   const centerY = (y1 + y2) / 2;
   const diameter = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 
+  const vertices: [number, number][] = [
+    [centerX, y1],
+    [x2, centerY],
+    [centerX, y2],
+    [x1, centerY],
+  ];
+
   switch (type) {
     case "line":
       roughElement = generator.line(x1, y1, x2, y2);
@@ -27,6 +34,10 @@ export function createElement(
 
     case "circle":
       roughElement = generator.circle(centerX, centerY, diameter);
+      break;
+
+    case "diamond":
+      roughElement = generator.polygon(vertices);
       break;
     default:
       roughElement = null;
@@ -59,6 +70,15 @@ export function createElement(
           ctx.stroke();
           break;
 
+        case "diamond":
+          ctx.beginPath();
+          ctx.moveTo(centerX, y1);
+          ctx.lineTo(x2, centerY);
+          ctx.lineTo(centerX, y2);
+          ctx.lineTo(x1, centerY);
+          ctx.closePath();
+          ctx.stroke();
+          break;
         default:
           break;
       }

@@ -6,6 +6,7 @@ export function drawElement(roughCanvas: RoughCanvas, element: ElementType) {
     case "line":
     case "rectangle":
     case "circle":
+    case "diamond":
       if (element.roughElement) {
         roughCanvas.draw(element.roughElement);
       }

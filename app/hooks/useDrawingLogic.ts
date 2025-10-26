@@ -26,6 +26,7 @@ export default function useDrawingLogic(tool: ToolType) {
       case "line":
       case "rectangle":
       case "circle":
+      case "diamond":
         elementsCopy[oldElementId] = createElement(x1, y1, x2, y2, type, id);
         break;
 
@@ -39,7 +40,12 @@ export default function useDrawingLogic(tool: ToolType) {
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
 
-    if (tool === "line" || tool === "rectangle" || tool === "circle") {
+    if (
+      tool === "line" ||
+      tool === "rectangle" ||
+      tool === "circle" ||
+      tool === "diamond"
+    ) {
       setAction("drawing");
 
       const newElement = createElement(
