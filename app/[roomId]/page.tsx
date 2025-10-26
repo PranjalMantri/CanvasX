@@ -27,7 +27,7 @@ export default function HomePage({
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  } = useDrawingLogic(tool);
+  } = useDrawingLogic(canvasRef.current, tool);
 
   useSocketSync({ roomId, elements, setElements, action });
 

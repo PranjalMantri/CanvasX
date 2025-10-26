@@ -1,1 +1,1 @@
-export type Action = "none" | "drawing";
+export type Action = "none" | "drawing" | "moving";

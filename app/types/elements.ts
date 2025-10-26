@@ -9,4 +9,7 @@ export interface ElementType {
   y2: number;
   type: ToolType;
   roughElement: Drawable | null;
+  offsetX?: number;
+  offsetY?: number;
+  position?: string;
 }

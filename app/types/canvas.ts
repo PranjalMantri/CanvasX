@@ -1,6 +1,11 @@
 import { Drawable } from "roughjs/bin/core";
 
-export type ToolType = "line" | "rectangle" | "circle" | "diamond";
+export type ToolType =
+  | "line"
+  | "rectangle"
+  | "circle"
+  | "diamond"
+  | "selection";
 
 export interface CreateElementType {
   id: number;
