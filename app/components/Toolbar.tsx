@@ -10,7 +10,7 @@ interface ToolBarProps {
 const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool, onUndo, onRedo }) => (
   <div
     style={{
-      position: "fixed",
+      position: "relative",
       top: 10,
       left: 10,
       zIndex: 2,

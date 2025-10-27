@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ToolType } from "../types/canvas";
 import { Action } from "../types/action";
 import { createElement } from "../utils/elementFactory";
@@ -17,7 +17,9 @@ import usePressedKeys from "./usePressedKeys";
 export default function useDrawingLogic(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   tool: ToolType,
-  textAreaRef: any
+  textAreaRef: any,
+  scale: number,
+  scaleOffset: any
 ) {
   const [elements, setElements] = useState<ElementType[]>([]);
   const [action, setAction] = useState<Action>("none");
@@ -29,6 +31,7 @@ export default function useDrawingLogic(
     x: 0,
     y: 0,
   });
+
   const pressedKeys = usePressedKeys();
 
   useEffect(() => {
@@ -54,8 +57,10 @@ export default function useDrawingLogic(
   }, []);
 
   const getMouseCoordinates = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const clientX = event.clientX - panOffset.x;
-    const clientY = event.clientY - panOffset.y;
+    const clientX =
+      (event.clientX - panOffset.x * scale + scaleOffset.x) / scale;
+    const clientY =
+      (event.clientY - panOffset.y * scale + scaleOffset.y) / scale;
     return { clientX, clientY };
   };
 
@@ -94,11 +99,11 @@ export default function useDrawingLogic(
 
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
-        ctx.font = "24px sans-serif";
+        ctx.font = `${24 * scale}px sans-serif`;
 
         const textWidth = ctx.measureText(options.text).width ?? 0;
 
-        const textHeight = 24;
+        const textHeight = 24 * scale;
         elementsCopy[oldElementId] = {
           ...createElement(x1, y1, x1 + textWidth, y1 + textHeight, type, id),
           text: options.text,
@@ -327,5 +332,7 @@ export default function useDrawingLogic(
     handleMouseUp,
     handleBlur,
     panOffset,
+    scale,
+    scaleOffset,
   };
 }

@@ -41,7 +41,8 @@ function getSvgPathFromStroke(points: any, closed = true) {
 export function drawElement(
   roughCanvas: RoughCanvas,
   element: ElementType,
-  context: CanvasRenderingContext2D
+  context: CanvasRenderingContext2D,
+  scale: number
 ) {
   switch (element.type) {
     case "line":
@@ -62,7 +63,7 @@ export function drawElement(
 
     case "text":
       context.textBaseline = "top";
-      context.font = `${24}px sans-serif`;
+      context.font = `${24 * scale}px sans-serif`;
       context.fillText(element.text ?? "", element.x1, element.y1);
       break;
     default:

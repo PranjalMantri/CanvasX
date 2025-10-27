@@ -19,6 +19,8 @@ export default function HomePage({
   const { roomId } = use(params);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const [scale, setScale] = useState(1);
+  const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
 
   const dimensions = useWindowResize();
   const {
@@ -31,7 +33,10 @@ export default function HomePage({
     handleMouseUp,
     handleBlur,
     panOffset,
-  } = useDrawingLogic(canvasRef, tool, textAreaRef);
+  } = useDrawingLogic(canvasRef, tool, textAreaRef, scale, scaleOffset);
+
+  const onZoom = (delta: number) =>
+    setScale((prev) => Math.min(Math.max(prev + delta, 0, 0.1), 2));
 
   const { undo, redo } = useSocketSync({
     roomId,
@@ -49,22 +54,33 @@ export default function HomePage({
 
     const roughCanvas = rough.canvas(canvas);
 
+    const scaledWidth = dimensions.width * scale;
+    const scaledHeight = dimensions.height * scale;
+
+    const scaledOffsetX = (scaledWidth - dimensions.width) / 2;
+    const scaledOffsetY = (scaledHeight - dimensions.height) / 2;
+    setScaleOffset({ x: scaledOffsetX, y: scaledOffsetY });
+
     context.strokeStyle = "black";
     context.lineWidth = 2;
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
     context.save();
-    context.translate(panOffset.x, panOffset.y);
+    context.translate(
+      panOffset.x * scale - scaledOffsetX,
+      panOffset.y * scale - scaledOffsetY
+    );
+    context.scale(scale, scale);
 
     elements.forEach((element) => {
       if (action === "writing" && selectedElement?.id === element.id) return;
 
-      drawElement(roughCanvas, element, context);
+      drawElement(roughCanvas, element, context, scale);
     });
 
     context.restore();
-  }, [elements, dimensions, panOffset]);
+  }, [elements, dimensions, panOffset, scale]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -95,15 +111,36 @@ export default function HomePage({
   return (
     <div>
       <ToolBar tool={tool} setTool={setTool} onUndo={undo} onRedo={redo} />
+      <div className="absolute bottom-10 left-24 z-2">
+        <button style={{ padding: "4px" }} onClick={() => onZoom(-0.1)}>
+          -
+        </button>
+        <span
+          style={{ padding: "4px", cursor: "pointer" }}
+          onClick={() => setScale(1)}
+        >
+          {new Intl.NumberFormat("en-GB", { style: "percent" }).format(scale)}
+        </span>
+        <button style={{ padding: "4px" }} onClick={() => onZoom(0.1)}>
+          +
+        </button>
+      </div>
       {action === "writing" ? (
         <textarea
           ref={textAreaRef}
           onBlur={handleBlur}
           style={{
             position: "fixed",
-            top: (selectedElement?.y1 ?? 0) + 15 + panOffset.y,
-            left: (selectedElement?.x1 ?? 0) + panOffset.x,
-            font: "24px sans-serif",
+            top:
+              (selectedElement?.y1 ?? 0) +
+              2 * scale +
+              panOffset.y * scale -
+              scaleOffset.y,
+            left:
+              (selectedElement?.x1 ?? 0) * scale +
+              panOffset.x * scale -
+              scaleOffset.x,
+            font: `${24 * scale}px sans-serif`,
             margin: 0,
             padding: 0,
             border: 0,
