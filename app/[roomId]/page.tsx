@@ -27,8 +27,6 @@ export default function HomePage({
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-    undo,
-    redo,
   } = useDrawingLogic(canvasRef.current, tool);
 
   useSocketSync({ roomId, elements, setElements, action });
@@ -54,7 +52,7 @@ export default function HomePage({
 
   return (
     <div>
-      <ToolBar tool={tool} setTool={setTool} undo={undo} redo={redo} />
+      <ToolBar tool={tool} setTool={setTool} />
       <canvas
         ref={canvasRef}
         width={dimensions.width}
