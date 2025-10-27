@@ -126,10 +126,10 @@ export default function useSocketSync({
     }
 
     // Only emit if:
-    // 1. We're not currently drawing
+    // 1. We're not currently in an active action (drawing, moving, resizing)
     // 2. The flag allows emitting (we didn't just receive data from server)
     // 3. Elements actually changed from what we last emitted
-    if (action === "drawing") {
+    if (action === "drawing" || action === "moving" || action === "resizing") {
       return;
     }
 
