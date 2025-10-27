@@ -12,6 +12,7 @@ import {
   adjustElementCoordinates,
   adjustmentRequired,
 } from "../utils/canvasUtils";
+import usePressedKeys from "./usePressedKeys";
 
 export default function useDrawingLogic(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -23,6 +24,12 @@ export default function useDrawingLogic(
   const [selectedElement, setSelectedElement] = useState<ElementType | null>(
     null
   );
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [startPanMousePosition, setStartPanMousePosition] = useState({
+    x: 0,
+    y: 0,
+  });
+  const pressedKeys = usePressedKeys();
 
   useEffect(() => {
     if (action === "writing") {
@@ -31,6 +38,26 @@ export default function useDrawingLogic(
       textArea.value = selectedElement?.text ?? "";
     }
   }, [action, selectedElement]);
+
+  useEffect(() => {
+    const panFunction = (event: WheelEvent): void => {
+      setPanOffset((prevState) => ({
+        x: prevState.x - event.deltaX,
+        y: prevState.y - event.deltaY,
+      }));
+    };
+
+    document.addEventListener("wheel", panFunction);
+    return () => {
+      document.removeEventListener("wheel", panFunction);
+    };
+  }, []);
+
+  const getMouseCoordinates = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const clientX = event.clientX - panOffset.x;
+    const clientY = event.clientY - panOffset.y;
+    return { clientX, clientY };
+  };
 
   const updateElement = (
     id: number,
@@ -87,7 +114,13 @@ export default function useDrawingLogic(
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (action === "writing") return;
 
-    const { clientX, clientY } = event;
+    const { clientX, clientY } = getMouseCoordinates(event);
+
+    if (event.button === 1 || pressedKeys.has(" ")) {
+      setAction("panning");
+      setStartPanMousePosition({ x: event.clientX, y: event.clientY });
+      return;
+    }
 
     if (
       tool === "line" ||
@@ -145,7 +178,21 @@ export default function useDrawingLogic(
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const { clientX, clientY } = event;
+
+    const { clientX, clientY } = getMouseCoordinates(event);
+
+    if (action === "panning") {
+      const deltaX = event.clientX - startPanMousePosition.x;
+      const deltaY = event.clientY - startPanMousePosition.y;
+
+      setPanOffset((prevState) => ({
+        x: prevState.x + deltaX,
+        y: prevState.y + deltaY,
+      }));
+
+      setStartPanMousePosition({ x: event.clientX, y: event.clientY });
+      return;
+    }
 
     if (action === "none") {
       canvas.style.cursor = "default";
@@ -215,7 +262,7 @@ export default function useDrawingLogic(
   };
 
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const { clientX, clientY } = event;
+    const { clientX, clientY } = getMouseCoordinates(event);
 
     if (action === "writing") {
       return;
@@ -245,7 +292,7 @@ export default function useDrawingLogic(
 
     if (
       selectedElement.type === "text" &&
-      action === "moving" && // Only trigger on a "move" action (which includes a click)
+      action === "moving" &&
       selectedElement.x1 === clientX - selectedElement.offsetX! &&
       selectedElement.y1 === clientY - selectedElement.offsetY!
     ) {
@@ -279,5 +326,6 @@ export default function useDrawingLogic(
     handleMouseMove,
     handleMouseUp,
     handleBlur,
+    panOffset,
   };
 }

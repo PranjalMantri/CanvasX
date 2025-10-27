@@ -30,6 +30,7 @@ export default function HomePage({
     handleMouseMove,
     handleMouseUp,
     handleBlur,
+    panOffset,
   } = useDrawingLogic(canvasRef, tool, textAreaRef);
 
   const { undo, redo } = useSocketSync({
@@ -53,12 +54,17 @@ export default function HomePage({
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
+    context.save();
+    context.translate(panOffset.x, panOffset.y);
+
     elements.forEach((element) => {
       if (action === "writing" && selectedElement?.id === element.id) return;
 
       drawElement(roughCanvas, element, context);
     });
-  }, [elements, dimensions]);
+
+    context.restore();
+  }, [elements, dimensions, panOffset]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -95,8 +101,8 @@ export default function HomePage({
           onBlur={handleBlur}
           style={{
             position: "fixed",
-            top: (selectedElement?.y1 ?? 0) + 15,
-            left: selectedElement?.x1,
+            top: (selectedElement?.y1 ?? 0) + 15 + panOffset.y,
+            left: (selectedElement?.x1 ?? 0) + panOffset.x,
             font: "24px sans-serif",
             margin: 0,
             padding: 0,
@@ -117,6 +123,7 @@ export default function HomePage({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         className="block"
+        style={{ position: "absolute", zIndex: 1 }}
       />
     </div>
   );

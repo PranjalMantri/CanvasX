@@ -13,7 +13,7 @@ const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool, onUndo, onRedo }) => (
       position: "fixed",
       top: 10,
       left: 10,
-      zIndex: 1,
+      zIndex: 2,
       background: "white",
       padding: "8px",
       borderRadius: "8px",
