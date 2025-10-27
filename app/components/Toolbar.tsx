@@ -115,6 +115,18 @@ const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool, onUndo, onRedo }) => (
     <label htmlFor="tool-text" style={{ marginLeft: "4px" }}>
       Text
     </label>
+
+    <input
+      type="radio"
+      id="tool-eraser"
+      name="toolType"
+      value="eraser"
+      checked={tool === "eraser"}
+      onChange={() => setTool("eraser")}
+    />
+    <label htmlFor="tool-eraser" style={{ marginLeft: "4px" }}>
+      Eraser
+    </label>
   </div>
 );
 

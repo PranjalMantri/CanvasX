@@ -4,4 +4,5 @@ export type Action =
   | "moving"
   | "resizing"
   | "writing"
-  | "panning";
+  | "panning"
+  | "erasing";

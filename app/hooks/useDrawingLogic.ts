@@ -109,6 +109,9 @@ export default function useDrawingLogic(
           text: options.text,
         };
         break;
+
+      case "eraser":
+        break;
       default:
         throw new Error("Invalid type: ", type);
     }
@@ -177,6 +180,11 @@ export default function useDrawingLogic(
       } else {
         setAction("resizing");
       }
+    } else if (tool === "eraser") {
+      setAction("erasing");
+
+      const element = getElementAtPosition(clientX, clientY, elements);
+      if (!element) return;
     }
   };
 
@@ -263,6 +271,11 @@ export default function useDrawingLogic(
         const { x1, y1, x2, y2 } = resized;
         updateElement(id, x1, y1, x2, y2, type);
       }
+    } else if (action === "erasing") {
+      const element = getElementAtPosition(clientX, clientY, elements);
+      if (!element) return;
+
+      setElements((prev) => prev.filter((el) => el.id !== element.id));
     }
   };
 
@@ -332,6 +345,7 @@ export default function useDrawingLogic(
     handleMouseUp,
     handleBlur,
     panOffset,
+    setPanOffset,
     scale,
     scaleOffset,
   };

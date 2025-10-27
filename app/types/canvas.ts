@@ -7,7 +7,8 @@ export type ToolType =
   | "diamond"
   | "selection"
   | "pencil"
-  | "text";
+  | "text"
+  | "eraser";
 
 export interface CreateElementType {
   id: number;
