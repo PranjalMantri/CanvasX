@@ -124,9 +124,17 @@ export default function useDrawingLogic(
 
     const { clientX, clientY } = getMouseCoordinates(event);
 
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
     if (event.button === 1 || pressedKeys.has(" ")) {
       setAction("panning");
-      setStartPanMousePosition({ x: event.clientX, y: event.clientY });
+      setStartPanMousePosition({ x: clientX, y: clientY });
       return;
     }
 
@@ -138,19 +146,13 @@ export default function useDrawingLogic(
       tool === "pencil" ||
       tool === "text"
     ) {
-      const newElement = createElement(
-        clientX,
-        clientY,
-        clientX,
-        clientY,
-        tool
-      );
+      const newElement = createElement(x, y, x, y, tool);
 
       setSelectedElement(newElement);
       setElements((prevElements) => [...prevElements, newElement]);
       setAction(tool === "text" ? "writing" : "drawing");
     } else if (tool === "selection") {
-      const element = getElementAtPosition(clientX, clientY, elements);
+      const element = getElementAtPosition(x, y, elements);
       if (!element) return;
 
       if (element.type === "pencil") {
@@ -183,7 +185,7 @@ export default function useDrawingLogic(
     } else if (tool === "eraser") {
       setAction("erasing");
 
-      const element = getElementAtPosition(clientX, clientY, elements);
+      const element = getElementAtPosition(x, y, elements);
       if (!element) return;
     }
   };
@@ -193,6 +195,11 @@ export default function useDrawingLogic(
     if (!canvas) return;
 
     const { clientX, clientY } = getMouseCoordinates(event);
+
+    const rect = canvas.getBoundingClientRect();
+
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
     if (action === "panning") {
       const deltaX = event.clientX - startPanMousePosition.x;
@@ -212,7 +219,7 @@ export default function useDrawingLogic(
     }
 
     if (tool === "selection") {
-      const hoveredElement = getElementAtPosition(clientX, clientY, elements);
+      const hoveredElement = getElementAtPosition(x, y, elements);
 
       if (hoveredElement?.position) {
         canvas.style.cursor = getCursorForPosition(hoveredElement.position);
@@ -223,7 +230,7 @@ export default function useDrawingLogic(
 
     if (action === "drawing" && selectedElement) {
       const { id, type, x1, y1 } = selectedElement;
-      updateElement(id, x1, y1, clientX, clientY, type);
+      updateElement(id, x1, y1, x, y, type);
     } else if (action === "moving" && selectedElement) {
       const { id, type, x1, y1, x2, y2, offsetX, offsetY } = selectedElement;
 
@@ -272,7 +279,7 @@ export default function useDrawingLogic(
         updateElement(id, x1, y1, x2, y2, type);
       }
     } else if (action === "erasing") {
-      const element = getElementAtPosition(clientX, clientY, elements);
+      const element = getElementAtPosition(x, y, elements);
       if (!element) return;
 
       setElements((prev) => prev.filter((el) => el.id !== element.id));
