@@ -23,7 +23,8 @@ export default function useDrawingLogic(
     null
   );
 
-  const updateElement = (
+  // Update element without syncing to server (local only)
+  const updateElementLocal = (
     id: number,
     x1: number,
     y1: number,
@@ -49,6 +50,18 @@ export default function useDrawingLogic(
     }
 
     setElements(elementsCopy);
+  };
+
+  // Update element and commit to server (creates history entry)
+  const updateElement = (
+    id: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    type: ToolType
+  ) => {
+    updateElementLocal(id, x1, y1, x2, y2, type);
   };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -112,7 +125,7 @@ export default function useDrawingLogic(
 
     if (action === "drawing" && selectedElement) {
       const { id, type, x1, y1 } = selectedElement;
-      updateElement(id, x1, y1, clientX, clientY, type);
+      updateElementLocal(id, x1, y1, clientX, clientY, type);
     } else if (action === "moving" && selectedElement) {
       const { id, type, x1, y1, x2, y2, offsetX, offsetY } = selectedElement;
 
@@ -121,7 +134,7 @@ export default function useDrawingLogic(
       const newX1 = clientX - offsetX!;
       const newY1 = clientY - offsetY!;
 
-      updateElement(id, newX1, newY1, newX1 + width, newY1 + height, type);
+      updateElementLocal(id, newX1, newY1, newX1 + width, newY1 + height, type);
     } else if (action === "resizing" && selectedElement) {
       const { id, type, position, ...coordinates } = selectedElement;
 
@@ -135,7 +148,7 @@ export default function useDrawingLogic(
 
       if (resized) {
         const { x1, y1, x2, y2 } = resized;
-        updateElement(id, x1, y1, x2, y2, type);
+        updateElementLocal(id, x1, y1, x2, y2, type);
       }
     }
   };

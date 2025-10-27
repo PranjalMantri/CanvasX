@@ -29,7 +29,12 @@ export default function HomePage({
     handleMouseUp,
   } = useDrawingLogic(canvasRef.current, tool);
 
-  useSocketSync({ roomId, elements, setElements, action });
+  const { undo, redo } = useSocketSync({
+    roomId,
+    elements,
+    setElements,
+    action,
+  });
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -52,7 +57,7 @@ export default function HomePage({
 
   return (
     <div>
-      <ToolBar tool={tool} setTool={setTool} />
+      <ToolBar tool={tool} setTool={setTool} onUndo={undo} onRedo={redo} />
       <canvas
         ref={canvasRef}
         width={dimensions.width}

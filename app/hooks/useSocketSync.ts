@@ -20,6 +20,8 @@ export default function useSocketSync({
 }: UseSocketSyncProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const actionRef = useRef(action);
+  const shouldEmitRef = useRef(true);
+  const previousElementsRef = useRef<ElementType[]>([]);
 
   useEffect(() => {
     actionRef.current = action;
@@ -43,35 +45,122 @@ export default function useSocketSync({
   useEffect(() => {
     if (!socket) return;
 
-    const handleHistory = (receivedElements: ElementType[]) => {
+    const handleHistory = (data: {
+      elements: ElementType[];
+      index: number;
+      historyLength: number;
+    }) => {
       console.log(
         "[socket] received history len=",
-        receivedElements?.length ?? 0
+        data.elements?.length ?? 0,
+        "index=",
+        data.index
       );
-      setElements(receivedElements || []);
+      shouldEmitRef.current = false;
+      setElements(data.elements || []);
     };
 
-    const handleDraw = (receivedElements: ElementType[]) => {
+    const handleDraw = (data: {
+      elements: ElementType[];
+      index: number;
+      historyLength: number;
+    }) => {
       if (actionRef.current !== "drawing") {
-        setElements(receivedElements || []);
+        console.log(
+          "[socket] received draw from other client, setting elements"
+        );
+        shouldEmitRef.current = false;
+        previousElementsRef.current = data.elements;
+        setElements(data.elements || []);
       }
+    };
+
+    const handleUndo = (data: {
+      elements: ElementType[];
+      index: number;
+      historyLength: number;
+    }) => {
+      console.log(
+        "[socket] received undo, index=",
+        data.index,
+        "len=",
+        data.elements?.length ?? 0
+      );
+      shouldEmitRef.current = false;
+      previousElementsRef.current = data.elements;
+      setElements(data.elements || []);
+    };
+
+    const handleRedo = (data: {
+      elements: ElementType[];
+      index: number;
+      historyLength: number;
+    }) => {
+      console.log(
+        "[socket] received redo, index=",
+        data.index,
+        "len=",
+        data.elements?.length ?? 0
+      );
+      shouldEmitRef.current = false;
+      previousElementsRef.current = data.elements;
+      setElements(data.elements || []);
     };
 
     socket.on("history", handleHistory);
     socket.on("draw", handleDraw);
+    socket.on("undo", handleUndo);
+    socket.on("redo", handleRedo);
 
     return () => {
       socket.off("history", handleHistory);
       socket.off("draw", handleDraw);
+      socket.off("undo", handleUndo);
+      socket.off("redo", handleRedo);
     };
   }, [socket, setElements]);
 
   useEffect(() => {
-    if (!socket || action === "drawing") {
+    if (!socket) {
       return;
     }
 
-    const snapshot = JSON.parse(JSON.stringify(elements || []));
-    socket.emit("draw", roomId, snapshot);
+    // Only emit if:
+    // 1. We're not currently drawing
+    // 2. The flag allows emitting (we didn't just receive data from server)
+    // 3. Elements actually changed from what we last emitted
+    if (action === "drawing") {
+      return;
+    }
+
+    if (!shouldEmitRef.current) {
+      shouldEmitRef.current = true;
+      return;
+    }
+
+    // Check if elements actually changed
+    const elementsChanged =
+      JSON.stringify(previousElementsRef.current) !== JSON.stringify(elements);
+
+    if (elementsChanged) {
+      console.log("[socket] emitting draw with", elements.length, "elements");
+      previousElementsRef.current = elements;
+      const snapshot = JSON.parse(JSON.stringify(elements || []));
+      socket.emit("draw", roomId, snapshot);
+    }
   }, [elements, action, roomId, socket]);
+
+  const undo = () => {
+    if (socket) {
+      socket.emit("undo", roomId);
+    }
+  };
+
+  const redo = () => {
+    if (socket) {
+      socket.emit("redo", roomId);
+    }
+  };
+
+  return { undo, redo };
 }

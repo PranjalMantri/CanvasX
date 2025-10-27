@@ -29,10 +29,25 @@ const io = new Server(server, {
   cors: { origin: "*" },
 });
 
-const roomElementHistory = new Map();
+interface HistoryState {
+  history: ElementType[][];
+  index: number;
+}
+
+const roomElementHistory = new Map<string, HistoryState>();
 
 function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v));
+}
+
+function initializeRoom(roomId: string): HistoryState {
+  if (!roomElementHistory.has(roomId)) {
+    roomElementHistory.set(roomId, {
+      history: [[]],
+      index: 0,
+    });
+  }
+  return roomElementHistory.get(roomId)!;
 }
 
 io.on("connection", (socket) => {
@@ -42,20 +57,89 @@ io.on("connection", (socket) => {
     socket.join(roomId);
     console.log(`User ${socket.id} joined room: ${roomId}`);
 
-    const history = roomElementHistory.get(roomId) || [];
+    const state = initializeRoom(roomId);
+    const currentElements = state.history[state.index];
 
-    socket.emit("history", deepClone(history));
+    socket.emit("history", {
+      elements: deepClone(currentElements),
+      index: state.index,
+      historyLength: state.history.length,
+    });
     console.log(
-      `Sent history length=${history.length} to ${socket.id} for room ${roomId}`
+      `Sent history length=${state.history.length}, index=${state.index} to ${socket.id} for room ${roomId}`
     );
   });
 
   socket.on("draw", (roomId, elements) => {
-    if (Array.isArray(elements) && elements.length > 0) {
-      roomElementHistory.set(roomId, elements);
-      socket.to(roomId).emit("draw", elements);
+    if (Array.isArray(elements)) {
+      const state = initializeRoom(roomId);
+
+      // Remove any history after current index (when user draws after undo)
+      state.history = state.history.slice(0, state.index + 1);
+
+      // Add new state
+      state.history.push(deepClone(elements));
+      state.index = state.history.length - 1;
+
+      roomElementHistory.set(roomId, state);
+
+      socket.to(roomId).emit("draw", {
+        elements: deepClone(elements),
+        index: state.index,
+        historyLength: state.history.length,
+      });
+
+      console.log(
+        `Drew in room ${roomId}: index=${state.index}, historyLength=${state.history.length}`
+      );
     } else {
-      console.log(`Ignored empty draw from ${socket.id} in room ${roomId}`);
+      console.log(`Ignored invalid draw from ${socket.id} in room ${roomId}`);
+    }
+  });
+
+  socket.on("undo", (roomId) => {
+    const state = initializeRoom(roomId);
+
+    if (state.index > 0) {
+      state.index--;
+      const currentElements = state.history[state.index];
+
+      socket.to(roomId).emit("undo", {
+        elements: deepClone(currentElements),
+        index: state.index,
+        historyLength: state.history.length,
+      });
+
+      socket.emit("undo", {
+        elements: deepClone(currentElements),
+        index: state.index,
+        historyLength: state.history.length,
+      });
+
+      console.log(`Undo in room ${roomId}: index=${state.index}`);
+    }
+  });
+
+  socket.on("redo", (roomId) => {
+    const state = initializeRoom(roomId);
+
+    if (state.index < state.history.length - 1) {
+      state.index++;
+      const currentElements = state.history[state.index];
+
+      socket.to(roomId).emit("redo", {
+        elements: deepClone(currentElements),
+        index: state.index,
+        historyLength: state.history.length,
+      });
+
+      socket.emit("redo", {
+        elements: deepClone(currentElements),
+        index: state.index,
+        historyLength: state.history.length,
+      });
+
+      console.log(`Redo in room ${roomId}: index=${state.index}`);
     }
   });
 

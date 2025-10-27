@@ -3,9 +3,11 @@ import { ToolType } from "../types/canvas";
 interface ToolBarProps {
   tool: ToolType;
   setTool: (tool: ToolType) => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
-const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool }) => (
+const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool, onUndo, onRedo }) => (
   <div
     style={{
       position: "fixed",
@@ -18,6 +20,20 @@ const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool }) => (
       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
     }}
   >
+    <button
+      onClick={onUndo}
+      style={{ marginRight: "8px", padding: "4px 8px" }}
+      title="Undo (Ctrl+Z)"
+    >
+      ↶ Undo
+    </button>
+    <button
+      onClick={onRedo}
+      style={{ marginRight: "12px", padding: "4px 8px" }}
+      title="Redo (Ctrl+Y)"
+    >
+      ↷ Redo
+    </button>
     <input
       type="radio"
       id="tool-line"
