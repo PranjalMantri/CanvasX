@@ -15,4 +15,5 @@ export interface ElementType {
   points?: any[];
   xOffsets?: any[];
   yOffsets?: any[];
+  text?: string;
 }

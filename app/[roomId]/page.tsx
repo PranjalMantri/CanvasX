@@ -18,16 +18,19 @@ export default function HomePage({
   const [tool, setTool] = useState<ToolType>("line");
   const { roomId } = use(params);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const dimensions = useWindowResize();
   const {
     elements,
     setElements,
+    selectedElement,
     action,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  } = useDrawingLogic(canvasRef.current, tool);
+    handleBlur,
+  } = useDrawingLogic(canvasRef, tool, textAreaRef);
 
   const { undo, redo } = useSocketSync({
     roomId,
@@ -50,7 +53,10 @@ export default function HomePage({
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
+    console.log(selectedElement?.y1);
     elements.forEach((element) => {
+      if (action === "writing" && selectedElement?.id === element.id) return;
+
       drawElement(roughCanvas, element, context);
     });
   }, [elements, dimensions]);
@@ -58,6 +64,26 @@ export default function HomePage({
   return (
     <div>
       <ToolBar tool={tool} setTool={setTool} onUndo={undo} onRedo={redo} />
+      {action === "writing" ? (
+        <textarea
+          ref={textAreaRef}
+          onBlur={handleBlur}
+          style={{
+            position: "fixed",
+            top: (selectedElement?.y1 ?? 0) + 15,
+            left: selectedElement?.x1,
+            font: "24px sans-serif",
+            margin: 0,
+            padding: 0,
+            border: 0,
+            outline: 0,
+            overflow: "hidden",
+            whiteSpace: "pre",
+            background: "transparent",
+            zIndex: 2,
+          }}
+        />
+      ) : null}
       <canvas
         ref={canvasRef}
         width={dimensions.width}

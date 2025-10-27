@@ -60,6 +60,11 @@ export function drawElement(
       context.fill(new Path2D(stroke));
       break;
 
+    case "text":
+      context.textBaseline = "top";
+      context.font = `${24}px sans-serif`;
+      context.fillText(element.text ?? "", element.x1, element.y1);
+      break;
     default:
       console.log("Invalid element type: ", element.type);
       break;

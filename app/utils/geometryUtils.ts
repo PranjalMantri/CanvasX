@@ -66,6 +66,7 @@ export function positionWithinElement(
       return distance < tolerance ? "inside" : null;
 
     case "rectangle":
+    case "text":
       const topLeft = nearPoint(x, y, x1, y1, "tl");
       const topRight = nearPoint(x, y, x2, y1, "tr");
       const bottomLeft = nearPoint(x, y, x1, y2, "bl");

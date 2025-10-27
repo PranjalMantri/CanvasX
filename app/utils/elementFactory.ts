@@ -9,7 +9,8 @@ export function createElement(
   x2: number,
   y2: number,
   type: ToolType,
-  id: number = Date.now()
+  id: number = Date.now(),
+  text?: string
 ): CreateElementType {
   let roughElement;
   const centerX = (x1 + x2) / 2;
@@ -85,5 +86,6 @@ export function createElement(
     },
     roughElement,
     points: [{ x: x1, y: y1 }],
+    text: "",
   };
 }

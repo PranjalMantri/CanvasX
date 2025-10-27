@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ToolType } from "../types/canvas";
 import { Action } from "../types/action";
 import { createElement } from "../utils/elementFactory";
@@ -14,8 +14,9 @@ import {
 } from "../utils/canvasUtils";
 
 export default function useDrawingLogic(
-  canvas: HTMLCanvasElement | null,
-  tool: ToolType
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  tool: ToolType,
+  textAreaRef: any
 ) {
   const [elements, setElements] = useState<ElementType[]>([]);
   const [action, setAction] = useState<Action>("none");
@@ -23,13 +24,23 @@ export default function useDrawingLogic(
     null
   );
 
+  useEffect(() => {
+    console.log(action);
+    if (action === "writing") {
+      const textArea = textAreaRef.current;
+      setTimeout(() => textArea.focus(), 0);
+      textArea.value = selectedElement?.text ?? "";
+    }
+  }, [action, selectedElement]);
+
   const updateElement = (
     id: number,
     x1: number,
     y1: number,
     x2: number,
     y2: number,
-    type: ToolType
+    type: ToolType,
+    options?: any
   ) => {
     const elementsCopy = [...elements];
     const oldElementId = elementsCopy.findIndex((element) => element.id === id);
@@ -50,6 +61,23 @@ export default function useDrawingLogic(
           { x: x2, y: y2 },
         ];
         break;
+
+      case "text":
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.font = "24px sans-serif";
+
+        const textWidth = ctx.measureText(options.text).width ?? 0;
+
+        const textHeight = 24;
+        elementsCopy[oldElementId] = {
+          ...createElement(x1, y1, x1 + textWidth, y1 + textHeight, type, id),
+          text: options.text,
+        };
+        break;
       default:
         throw new Error("Invalid type: ", type);
     }
@@ -58,6 +86,8 @@ export default function useDrawingLogic(
   };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (action === "writing") return;
+
     const { clientX, clientY } = event;
 
     if (
@@ -65,7 +95,8 @@ export default function useDrawingLogic(
       tool === "rectangle" ||
       tool === "circle" ||
       tool === "diamond" ||
-      tool === "pencil"
+      tool === "pencil" ||
+      tool === "text"
     ) {
       const newElement = createElement(
         clientX,
@@ -77,7 +108,7 @@ export default function useDrawingLogic(
 
       setSelectedElement(newElement);
       setElements((prevElements) => [...prevElements, newElement]);
-      setAction("drawing");
+      setAction(tool === "text" ? "writing" : "drawing");
     } else if (tool === "selection") {
       const element = getElementAtPosition(clientX, clientY, elements);
       if (!element) return;
@@ -113,6 +144,7 @@ export default function useDrawingLogic(
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
     if (!canvas) return;
     const { clientX, clientY } = event;
 
@@ -122,10 +154,11 @@ export default function useDrawingLogic(
 
     if (tool === "selection") {
       const hoveredElement = getElementAtPosition(clientX, clientY, elements);
-      if (!canvas) return;
 
       if (hoveredElement?.position) {
         canvas.style.cursor = getCursorForPosition(hoveredElement.position);
+      } else {
+        canvas.style.cursor = "default";
       }
     }
 
@@ -152,8 +185,17 @@ export default function useDrawingLogic(
         const height = y2 - y1;
         const newX1 = clientX - offsetX!;
         const newY1 = clientY - offsetY!;
+        const options = type === "text" ? { text: selectedElement.text } : {};
 
-        updateElement(id, newX1, newY1, newX1 + width, newY1 + height, type);
+        updateElement(
+          id,
+          newX1,
+          newY1,
+          newX1 + width,
+          newY1 + height,
+          type,
+          options
+        );
       }
     } else if (action === "resizing" && selectedElement) {
       const { id, type, position, ...coordinates } = selectedElement;
@@ -173,7 +215,13 @@ export default function useDrawingLogic(
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const { clientX, clientY } = event;
+
+    if (action === "writing") {
+      return;
+    }
+
     if (!selectedElement) {
       setAction("none");
       return;
@@ -196,16 +244,42 @@ export default function useDrawingLogic(
       }
     }
 
-    setSelectedElement(null);
+    if (
+      selectedElement.type === "text" &&
+      action === "moving" && // Only trigger on a "move" action (which includes a click)
+      selectedElement.x1 === clientX - selectedElement.offsetX! &&
+      selectedElement.y1 === clientY - selectedElement.offsetY!
+    ) {
+      setAction("writing");
+      return;
+    }
+
     setAction("none");
+    setSelectedElement(null);
+  };
+
+  const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    console.log("handle blur was triggerd");
+    if (!selectedElement) return;
+
+    const { id, x1, y1, type } = selectedElement;
+
+    setAction("none");
+    setSelectedElement(null);
+
+    updateElement(id, x1, y1, -1, -1, type, {
+      text: event.target.value,
+    });
   };
 
   return {
     elements,
     setElements,
+    selectedElement,
     action,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    handleBlur,
   };
 }
