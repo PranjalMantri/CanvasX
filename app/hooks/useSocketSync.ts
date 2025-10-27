@@ -48,7 +48,6 @@ export default function useSocketSync({
     const handleHistory = (data: {
       elements: ElementType[];
       index: number;
-      historyLength: number;
     }) => {
       console.log(
         "[socket] received history len=",
@@ -60,11 +59,7 @@ export default function useSocketSync({
       setElements(data.elements || []);
     };
 
-    const handleDraw = (data: {
-      elements: ElementType[];
-      index: number;
-      historyLength: number;
-    }) => {
+    const handleDraw = (data: { elements: ElementType[]; index: number }) => {
       if (actionRef.current !== "drawing") {
         console.log(
           "[socket] received draw from other client, setting elements"
@@ -75,11 +70,7 @@ export default function useSocketSync({
       }
     };
 
-    const handleUndo = (data: {
-      elements: ElementType[];
-      index: number;
-      historyLength: number;
-    }) => {
+    const handleUndo = (data: { elements: ElementType[]; index: number }) => {
       console.log(
         "[socket] received undo, index=",
         data.index,
@@ -91,11 +82,7 @@ export default function useSocketSync({
       setElements(data.elements || []);
     };
 
-    const handleRedo = (data: {
-      elements: ElementType[];
-      index: number;
-      historyLength: number;
-    }) => {
+    const handleRedo = (data: { elements: ElementType[]; index: number }) => {
       console.log(
         "[socket] received redo, index=",
         data.index,

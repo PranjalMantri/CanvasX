@@ -63,7 +63,6 @@ io.on("connection", (socket) => {
     socket.emit("history", {
       elements: deepClone(currentElements),
       index: state.index,
-      historyLength: state.history.length,
     });
     console.log(
       `Sent history length=${state.history.length}, index=${state.index} to ${socket.id} for room ${roomId}`
@@ -74,10 +73,9 @@ io.on("connection", (socket) => {
     if (Array.isArray(elements)) {
       const state = initializeRoom(roomId);
 
-      // Remove any history after current index (when user draws after undo)
+      // history branching
       state.history = state.history.slice(0, state.index + 1);
 
-      // Add new state
       state.history.push(deepClone(elements));
       state.index = state.history.length - 1;
 
@@ -86,7 +84,6 @@ io.on("connection", (socket) => {
       socket.to(roomId).emit("draw", {
         elements: deepClone(elements),
         index: state.index,
-        historyLength: state.history.length,
       });
 
       console.log(
@@ -107,13 +104,11 @@ io.on("connection", (socket) => {
       socket.to(roomId).emit("undo", {
         elements: deepClone(currentElements),
         index: state.index,
-        historyLength: state.history.length,
       });
 
       socket.emit("undo", {
         elements: deepClone(currentElements),
         index: state.index,
-        historyLength: state.history.length,
       });
 
       console.log(`Undo in room ${roomId}: index=${state.index}`);
@@ -130,13 +125,11 @@ io.on("connection", (socket) => {
       socket.to(roomId).emit("redo", {
         elements: deepClone(currentElements),
         index: state.index,
-        historyLength: state.history.length,
       });
 
       socket.emit("redo", {
         elements: deepClone(currentElements),
         index: state.index,
-        historyLength: state.history.length,
       });
 
       console.log(`Redo in room ${roomId}: index=${state.index}`);
