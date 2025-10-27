@@ -32,7 +32,6 @@ export default function useSocketSync({
     setSocket(s);
 
     s.on("connect", () => {
-      console.log("User connect");
       s.emit("join-room", roomId);
     });
 
@@ -49,21 +48,12 @@ export default function useSocketSync({
       elements: ElementType[];
       index: number;
     }) => {
-      console.log(
-        "[socket] received history len=",
-        data.elements?.length ?? 0,
-        "index=",
-        data.index
-      );
       shouldEmitRef.current = false;
       setElements(data.elements || []);
     };
 
     const handleDraw = (data: { elements: ElementType[]; index: number }) => {
       if (actionRef.current !== "drawing") {
-        console.log(
-          "[socket] received draw from other client, setting elements"
-        );
         shouldEmitRef.current = false;
         previousElementsRef.current = data.elements;
         setElements(data.elements || []);
@@ -71,24 +61,12 @@ export default function useSocketSync({
     };
 
     const handleUndo = (data: { elements: ElementType[]; index: number }) => {
-      console.log(
-        "[socket] received undo, index=",
-        data.index,
-        "len=",
-        data.elements?.length ?? 0
-      );
       shouldEmitRef.current = false;
       previousElementsRef.current = data.elements;
       setElements(data.elements || []);
     };
 
     const handleRedo = (data: { elements: ElementType[]; index: number }) => {
-      console.log(
-        "[socket] received redo, index=",
-        data.index,
-        "len=",
-        data.elements?.length ?? 0
-      );
       shouldEmitRef.current = false;
       previousElementsRef.current = data.elements;
       setElements(data.elements || []);
@@ -112,10 +90,6 @@ export default function useSocketSync({
       return;
     }
 
-    // Only emit if:
-    // 1. We're not currently in an active action (drawing, moving, resizing)
-    // 2. The flag allows emitting (we didn't just receive data from server)
-    // 3. Elements actually changed from what we last emitted
     if (action === "drawing" || action === "moving" || action === "resizing") {
       return;
     }
@@ -130,7 +104,6 @@ export default function useSocketSync({
       JSON.stringify(previousElementsRef.current) !== JSON.stringify(elements);
 
     if (elementsChanged) {
-      console.log("[socket] emitting draw with", elements.length, "elements");
       previousElementsRef.current = elements;
       const snapshot = JSON.parse(JSON.stringify(elements || []));
       socket.emit("draw", roomId, snapshot);

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useLayoutEffect, useRef, useState } from "react";
+import { use, useEffect, useLayoutEffect, useRef, useState } from "react";
 import rough from "roughjs";
 
 import { ToolType } from "../types/canvas";
@@ -53,13 +53,38 @@ export default function HomePage({
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
-    console.log(selectedElement?.y1);
     elements.forEach((element) => {
       if (action === "writing" && selectedElement?.id === element.id) return;
 
       drawElement(roughCanvas, element, context);
     });
   }, [elements, dimensions]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (action === "writing") return;
+
+      const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+
+      if (isCtrlOrCmd && event.key === "z") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redo(); // Ctrl/Cmd + Shift + Z
+        } else {
+          undo(); // Ctrl/Cmd + Z
+        }
+      } else if (isCtrlOrCmd && event.key === "y") {
+        event.preventDefault();
+        redo(); // Ctrl/Cmd + Y
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [undo, redo, action]);
 
   return (
     <div>

@@ -25,7 +25,6 @@ export default function useDrawingLogic(
   );
 
   useEffect(() => {
-    console.log(action);
     if (action === "writing") {
       const textArea = textAreaRef.current;
       setTimeout(() => textArea.focus(), 0);
@@ -259,7 +258,6 @@ export default function useDrawingLogic(
   };
 
   const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
-    console.log("handle blur was triggerd");
     if (!selectedElement) return;
 
     const { id, x1, y1, type } = selectedElement;
