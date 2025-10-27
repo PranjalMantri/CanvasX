@@ -5,7 +5,8 @@ export type ToolType =
   | "rectangle"
   | "circle"
   | "diamond"
-  | "selection";
+  | "selection"
+  | "pencil";
 
 export interface CreateElementType {
   id: number;
@@ -16,4 +17,5 @@ export interface CreateElementType {
   y2: number;
   draw: (ctx: CanvasRenderingContext2D) => void;
   roughElement: Drawable | null;
+  points: any[];
 }

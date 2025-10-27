@@ -165,6 +165,27 @@ export function positionWithinElement(
 
       return null;
 
+    case "pencil":
+      if (!element.points) return null;
+
+      const betweenAnyPoint = element.points.some((point, index) => {
+        const nextPoint = element.points![index + 1];
+        if (!nextPoint) return;
+
+        return (
+          pointToLineSegmentDistance(
+            x,
+            y,
+            point.x,
+            point.y,
+            nextPoint.x,
+            nextPoint.y
+          ) < tolerance
+        );
+      });
+
+      return betweenAnyPoint ? "inside" : null;
+
     default:
       return null;
   }

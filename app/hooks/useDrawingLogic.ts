@@ -1,4 +1,4 @@
-import { act, useState } from "react";
+import { useState } from "react";
 import { ToolType } from "../types/canvas";
 import { Action } from "../types/action";
 import { createElement } from "../utils/elementFactory";
@@ -44,6 +44,12 @@ export default function useDrawingLogic(
 
       case "selection":
         break;
+      case "pencil":
+        elementsCopy[oldElementId].points = [
+          ...(elementsCopy[oldElementId].points ?? []),
+          { x: x2, y: y2 },
+        ];
+        break;
       default:
         throw new Error("Invalid type: ", type);
     }
@@ -58,7 +64,8 @@ export default function useDrawingLogic(
       tool === "line" ||
       tool === "rectangle" ||
       tool === "circle" ||
-      tool === "diamond"
+      tool === "diamond" ||
+      tool === "pencil"
     ) {
       const newElement = createElement(
         clientX,
@@ -75,15 +82,27 @@ export default function useDrawingLogic(
       const element = getElementAtPosition(clientX, clientY, elements);
       if (!element) return;
 
-      const offsetX = clientX - element.x1;
-      const offsetY = clientY - element.y1;
+      if (element.type === "pencil") {
+        const xOffsets = element.points!!.map((point) => clientX - point.x);
+        const yOffsets = element.points!!.map((point) => clientY - point.y);
 
-      setSelectedElement({
-        ...element,
-        offsetX,
-        offsetY,
-        position: element.position ?? undefined,
-      });
+        setSelectedElement({
+          ...element,
+          xOffsets,
+          yOffsets,
+          position: element.position ?? undefined,
+        });
+      } else {
+        const offsetX = clientX - element.x1;
+        const offsetY = clientY - element.y1;
+
+        setSelectedElement({
+          ...element,
+          offsetX,
+          offsetY,
+          position: element.position ?? undefined,
+        });
+      }
 
       if (element.position === "inside") {
         setAction("moving");
@@ -116,12 +135,26 @@ export default function useDrawingLogic(
     } else if (action === "moving" && selectedElement) {
       const { id, type, x1, y1, x2, y2, offsetX, offsetY } = selectedElement;
 
-      const width = x2 - x1;
-      const height = y2 - y1;
-      const newX1 = clientX - offsetX!;
-      const newY1 = clientY - offsetY!;
+      if (selectedElement.type === "pencil") {
+        const newPoints = selectedElement.points!.map((_, index) => ({
+          x: clientX - selectedElement.xOffsets![index],
+          y: clientY - selectedElement.yOffsets![index],
+        }));
 
-      updateElement(id, newX1, newY1, newX1 + width, newY1 + height, type);
+        const newElement = { ...selectedElement, points: newPoints };
+
+        const index = elements.findIndex((element) => element.id === id);
+        const elementsCopy = [...elements];
+        elementsCopy[index] = newElement;
+        setElements(elementsCopy);
+      } else {
+        const width = x2 - x1;
+        const height = y2 - y1;
+        const newX1 = clientX - offsetX!;
+        const newY1 = clientY - offsetY!;
+
+        updateElement(id, newX1, newY1, newX1 + width, newY1 + height, type);
+      }
     } else if (action === "resizing" && selectedElement) {
       const { id, type, position, ...coordinates } = selectedElement;
 

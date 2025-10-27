@@ -92,6 +92,17 @@ const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool, onUndo, onRedo }) => (
     <label htmlFor="tool-selection" style={{ marginLeft: "4px" }}>
       Selection
     </label>
+    <input
+      type="radio"
+      id="tool-pencil"
+      name="toolType"
+      value="pencil"
+      checked={tool === "pencil"}
+      onChange={() => setTool("pencil")}
+    />
+    <label htmlFor="tool-pencil" style={{ marginLeft: "4px" }}>
+      Pencil
+    </label>
   </div>
 );
 

@@ -84,5 +84,6 @@ export function createElement(
       }
     },
     roughElement,
+    points: [{ x: x1, y: y1 }],
   };
 }

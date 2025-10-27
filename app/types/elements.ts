@@ -12,4 +12,7 @@ export interface ElementType {
   offsetX?: number;
   offsetY?: number;
   position?: string;
+  points?: any[];
+  xOffsets?: any[];
+  yOffsets?: any[];
 }
