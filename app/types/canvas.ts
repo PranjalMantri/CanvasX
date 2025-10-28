@@ -10,6 +10,11 @@ export type ToolType =
   | "text"
   | "eraser";
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
 export interface CreateElementType {
   id: number;
   type: ToolType;
@@ -19,6 +24,6 @@ export interface CreateElementType {
   y2: number;
   draw: (ctx: CanvasRenderingContext2D) => void;
   roughElement: Drawable | null;
-  points?: any[];
+  points?: Array<{ x: number; y: number }>;
   text?: string;
 }

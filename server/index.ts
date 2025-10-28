@@ -15,7 +15,7 @@ interface ElementType {
   x2: number;
   y2: number;
   type: ToolType;
-  roughElement: any;
+  roughElement: Record<string, unknown>;
 }
 
 const port = process.env.PORT || 3001;
@@ -53,7 +53,7 @@ function initializeRoom(roomId: string): HistoryState {
 io.on("connection", (socket) => {
   console.log("User connected: ", socket.id);
 
-  socket.on("join-room", (roomId) => {
+  socket.on("join-room", (roomId: string) => {
     socket.join(roomId);
     console.log(`User ${socket.id} joined room: ${roomId}`);
 

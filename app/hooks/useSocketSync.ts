@@ -29,10 +29,10 @@ export default function useSocketSync({
 
   useEffect(() => {
     const s = io(SOCKET_URL);
-    setSocket(s);
 
     s.on("connect", () => {
       s.emit("join-room", roomId);
+      setSocket(s);
     });
 
     return () => {

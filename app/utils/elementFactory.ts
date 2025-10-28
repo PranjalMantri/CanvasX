@@ -1,6 +1,5 @@
 import rough from "roughjs";
 import { CreateElementType, ToolType } from "../types/canvas";
-import { useStyleStore } from "../store/useStyles";
 
 const generator = rough.generator();
 
@@ -12,8 +11,7 @@ export function createElement(
   type: ToolType,
   color: string,
   width: number,
-  id: number = Date.now(),
-  text?: string
+  id: number = Date.now()
 ): CreateElementType {
   let roughElement;
   const centerX = (x1 + x2) / 2;

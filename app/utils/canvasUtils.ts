@@ -5,7 +5,7 @@ import getStroke from "perfect-freehand";
 
 const average = (a: number, b: number) => (a + b) / 2;
 
-function getSvgPathFromStroke(points: any, closed = true) {
+function getSvgPathFromStroke(points: Array<number[]>, closed = true) {
   const len = points.length;
 
   if (len < 4) {

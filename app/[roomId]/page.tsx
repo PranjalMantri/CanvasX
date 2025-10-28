@@ -51,6 +51,17 @@ export default function HomePage({
   });
 
   useLayoutEffect(() => {
+    const scaledWidth = dimensions.width * scale;
+    const scaledHeight = dimensions.height * scale;
+
+    const scaledOffsetX = (scaledWidth - dimensions.width) / 2;
+    const scaledOffsetY = (scaledHeight - dimensions.height) / 2;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setScaleOffset({ x: scaledOffsetX, y: scaledOffsetY });
+  }, [scale, dimensions]);
+
+  useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -64,7 +75,6 @@ export default function HomePage({
 
     const scaledOffsetX = (scaledWidth - dimensions.width) / 2;
     const scaledOffsetY = (scaledHeight - dimensions.height) / 2;
-    setScaleOffset({ x: scaledOffsetX, y: scaledOffsetY });
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
@@ -82,7 +92,7 @@ export default function HomePage({
     });
 
     context.restore();
-  }, [elements, dimensions, panOffset, scale]);
+  }, [elements, dimensions, panOffset, scale, action, selectedElement?.id]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

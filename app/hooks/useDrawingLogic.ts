@@ -18,9 +18,9 @@ import { useStyleStore } from "../store/useStyles";
 export default function useDrawingLogic(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   tool: ToolType,
-  textAreaRef: any,
+  textAreaRef: React.RefObject<HTMLTextAreaElement | null>,
   scale: number,
-  scaleOffset: any
+  scaleOffset: { x: number; y: number }
 ) {
   const [elements, setElements] = useState<ElementType[]>([]);
   const [action, setAction] = useState<Action>("none");
@@ -40,10 +40,12 @@ export default function useDrawingLogic(
   useEffect(() => {
     if (action === "writing") {
       const textArea = textAreaRef.current;
-      setTimeout(() => textArea.focus(), 0);
-      textArea.value = selectedElement?.text ?? "";
+      setTimeout(() => textArea?.focus(), 0);
+      if (selectedElement) {
+        textArea!.value = selectedElement.text ?? "";
+      }
     }
-  }, [action, selectedElement]);
+  }, [action, selectedElement, textAreaRef]);
 
   useEffect(() => {
     const panFunction = (event: WheelEvent): void => {
@@ -74,7 +76,7 @@ export default function useDrawingLogic(
     x2: number,
     y2: number,
     type: ToolType,
-    options?: any
+    options?: { text?: string }
   ) => {
     const elementsCopy = [...elements];
     const oldElementId = elementsCopy.findIndex((element) => element.id === id);
@@ -113,7 +115,7 @@ export default function useDrawingLogic(
         if (!ctx) return;
         ctx.font = `${24 * scale}px sans-serif`;
 
-        const textWidth = ctx.measureText(options.text).width ?? 0;
+        const textWidth = ctx.measureText(options?.text ?? "").width ?? 0;
 
         const textHeight = 24 * scale;
         elementsCopy[oldElementId] = {
@@ -127,7 +129,7 @@ export default function useDrawingLogic(
             width,
             id
           ),
-          text: options.text,
+          text: options?.text,
         };
         break;
 
@@ -177,8 +179,8 @@ export default function useDrawingLogic(
       if (!element) return;
 
       if (element.type === "pencil") {
-        const xOffsets = element.points!!.map((point) => clientX - point.x);
-        const yOffsets = element.points!!.map((point) => clientY - point.y);
+        const xOffsets = element.points!.map((point) => clientX - point.x);
+        const yOffsets = element.points!.map((point) => clientY - point.y);
 
         setSelectedElement({
           ...element,

@@ -123,7 +123,7 @@ export const UtilityBar = ({
             </span>
             <Slider
               value={[strokeWidth]}
-              onValueChange={(value: any) => onStrokeWidthChange(value[0])}
+              onValueChange={(value: number[]) => onStrokeWidthChange(value[0])}
               min={1}
               max={10}
               step={1}
