@@ -1,6 +1,13 @@
 "use client";
 
-import { use, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  use,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import rough from "roughjs";
 
 import { ToolType } from "../types/canvas";
@@ -49,6 +56,20 @@ export default function HomePage({
     setElements,
     action,
   });
+
+  const handleSaveCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const dataUrl = canvas.toDataURL("image/png");
+
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `${roomId}-drawing.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [canvasRef, roomId]);
 
   useLayoutEffect(() => {
     const scaledWidth = dimensions.width * scale;
@@ -121,9 +142,9 @@ export default function HomePage({
   }, [undo, redo, action]);
 
   return (
-    <div>
+    <div className="bg-white">
       <Navbar />
-      <ToolBar tool={tool} setTool={setTool} />
+      <ToolBar tool={tool} setTool={setTool} onSave={handleSaveCanvas} />
       {action === "writing" ? (
         <textarea
           ref={textAreaRef}
@@ -158,8 +179,7 @@ export default function HomePage({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        className="block absolute z-1 bg-[#2C2C2C]"
-        style={{ position: "absolute", zIndex: 1 }}
+        className="block absolute z-1 bg-zinc-800"
       />
       <UtilityBar
         onUndo={undo}

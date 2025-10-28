@@ -7,6 +7,7 @@ import {
   Minus,
   MousePointer2,
   Pencil,
+  Save,
   Square,
   Type,
 } from "lucide-react";
@@ -59,17 +60,24 @@ const toolConfig = [
     label: "Eraser",
     icon: Eraser,
   },
+  {
+    name: "save",
+    label: "Save Canvas",
+    icon: Save,
+  },
 ] as const;
 
 interface ToolBarProps {
   tool: ToolType;
   setTool: (tool: ToolType) => void;
+  onSave: () => void;
 }
 
 interface ToolButtonProps {
   label: string;
   icon: React.ElementType;
   onClick: () => void;
+  onSave: () => void;
   isActive: boolean;
 }
 
@@ -104,7 +112,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
   );
 };
 
-const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool }) => (
+const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool, onSave }) => (
   <TooltipProvider delayDuration={150}>
     <div className="z-2 fixed left-0 bg-zinc-900 text-white w-16 h-full border-r border-r-[#374151] flex flex-col items-center pt-4 space-y-2">
       {toolConfig.map((item) => (
@@ -112,8 +120,9 @@ const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool }) => (
           key={item.name}
           label={item.label}
           icon={item.icon}
-          onClick={() => setTool(item.name)}
+          onClick={() => (item.name === "save" ? onSave() : setTool(item.name))}
           isActive={tool === item.name}
+          onSave={onSave}
         />
       ))}
     </div>
