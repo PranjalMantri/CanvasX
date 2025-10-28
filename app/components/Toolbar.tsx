@@ -1,133 +1,123 @@
+"use client";
+
+import {
+  Circle,
+  Diamond,
+  Eraser,
+  Minus,
+  MousePointer2,
+  Pencil,
+  Square,
+  Type,
+} from "lucide-react";
 import { ToolType } from "../types/canvas";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const toolConfig = [
+  {
+    name: "selection",
+    label: "Selection",
+    icon: MousePointer2,
+  },
+  {
+    name: "pencil",
+    label: "Pencil",
+    icon: Pencil,
+  },
+  {
+    name: "line",
+    label: "Line",
+    icon: Minus,
+  },
+  {
+    name: "rectangle",
+    label: "Rectangle",
+    icon: Square,
+  },
+  {
+    name: "circle",
+    label: "Circle",
+    icon: Circle,
+  },
+  {
+    name: "diamond",
+    label: "Diamond",
+    icon: Diamond,
+  },
+  {
+    name: "text",
+    label: "Text",
+    icon: Type,
+  },
+  {
+    name: "eraser",
+    label: "Eraser",
+    icon: Eraser,
+  },
+] as const;
 
 interface ToolBarProps {
   tool: ToolType;
   setTool: (tool: ToolType) => void;
-  onUndo: () => void;
-  onRedo: () => void;
 }
 
-const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool, onUndo, onRedo }) => (
-  <div
-    style={{
-      position: "relative",
-      top: 10,
-      left: 10,
-      zIndex: 2,
-      background: "white",
-      padding: "8px",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    }}
-  >
-    <button
-      onClick={onUndo}
-      style={{ marginRight: "8px", padding: "4px 8px" }}
-      title="Undo (Ctrl+Z)"
-    >
-      ↶ Undo
-    </button>
-    <button
-      onClick={onRedo}
-      style={{ marginRight: "12px", padding: "4px 8px" }}
-      title="Redo (Ctrl+Y)"
-    >
-      ↷ Redo
-    </button>
-    <input
-      type="radio"
-      id="tool-line"
-      name="toolType"
-      value="line"
-      checked={tool === "line"}
-      onChange={() => setTool("line")}
-    />
-    <label
-      htmlFor="tool-line"
-      style={{ marginLeft: "4px", marginRight: "12px" }}
-    >
-      Line
-    </label>
-    <input
-      type="radio"
-      id="tool-rectangle"
-      name="toolType"
-      value="rectangle"
-      checked={tool === "rectangle"}
-      onChange={() => setTool("rectangle")}
-    />
-    <label htmlFor="tool-rectangle" style={{ marginLeft: "4px" }}>
-      Rectangle
-    </label>
-    <input
-      type="radio"
-      id="tool-circle"
-      name="toolType"
-      value="circle"
-      checked={tool === "circle"}
-      onChange={() => setTool("circle")}
-    />
-    <label htmlFor="tool-circle" style={{ marginLeft: "4px" }}>
-      Circle
-    </label>
-    <input
-      type="radio"
-      id="tool-diamond"
-      name="toolType"
-      value="diamond"
-      checked={tool === "diamond"}
-      onChange={() => setTool("diamond")}
-    />
-    <label htmlFor="tool-diamond" style={{ marginLeft: "4px" }}>
-      Diamond
-    </label>
-    <input
-      type="radio"
-      id="tool-selection"
-      name="toolType"
-      value="selection"
-      checked={tool === "selection"}
-      onChange={() => setTool("selection")}
-    />
-    <label htmlFor="tool-selection" style={{ marginLeft: "4px" }}>
-      Selection
-    </label>
-    <input
-      type="radio"
-      id="tool-pencil"
-      name="toolType"
-      value="pencil"
-      checked={tool === "pencil"}
-      onChange={() => setTool("pencil")}
-    />
-    <label htmlFor="tool-pencil" style={{ marginLeft: "4px" }}>
-      Pencil
-    </label>
+interface ToolButtonProps {
+  label: string;
+  icon: React.ElementType;
+  onClick: () => void;
+  isActive: boolean;
+}
 
-    <input
-      type="radio"
-      id="tool-text"
-      name="toolType"
-      value="text"
-      checked={tool === "text"}
-      onChange={() => setTool("text")}
-    />
-    <label htmlFor="tool-text" style={{ marginLeft: "4px" }}>
-      Text
-    </label>
+const ToolButton: React.FC<ToolButtonProps> = ({
+  label,
+  icon: Icon,
+  onClick,
+  isActive,
+}) => {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={onClick}
+          className={`
+            w-11 h-11  flex items-center justify-center rounded-lg
+            transition-colors duration-150 ease-in-out
+            ${
+              isActive
+                ? "bg-[#FFA500] text-white"
+                : "text-gray-400 hover:text-white hover:bg-zinc-800"
+            }
+          `}
+        >
+          <Icon className="w-5 h-5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="right" sideOffset={10}>
+        <p className="text-sm font-medium">{label}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 
-    <input
-      type="radio"
-      id="tool-eraser"
-      name="toolType"
-      value="eraser"
-      checked={tool === "eraser"}
-      onChange={() => setTool("eraser")}
-    />
-    <label htmlFor="tool-eraser" style={{ marginLeft: "4px" }}>
-      Eraser
-    </label>
-  </div>
+const ToolBar: React.FC<ToolBarProps> = ({ tool, setTool }) => (
+  <TooltipProvider delayDuration={150}>
+    <div className="z-2 fixed left-0 bg-zinc-900 text-white w-16 h-full border-r border-r-[#374151] flex flex-col items-center pt-4 space-y-2">
+      {toolConfig.map((item) => (
+        <ToolButton
+          key={item.name}
+          label={item.label}
+          icon={item.icon}
+          onClick={() => setTool(item.name)}
+          isActive={tool === item.name}
+        />
+      ))}
+    </div>
+  </TooltipProvider>
 );
 
 export default ToolBar;

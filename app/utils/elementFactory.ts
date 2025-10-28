@@ -1,5 +1,6 @@
 import rough from "roughjs";
 import { CreateElementType, ToolType } from "../types/canvas";
+import { useStyleStore } from "../store/useStyles";
 
 const generator = rough.generator();
 
@@ -9,6 +10,8 @@ export function createElement(
   x2: number,
   y2: number,
   type: ToolType,
+  color: string,
+  width: number,
   id: number = Date.now(),
   text?: string
 ): CreateElementType {
@@ -16,6 +19,11 @@ export function createElement(
   const centerX = (x1 + x2) / 2;
   const centerY = (y1 + y2) / 2;
   const diameter = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+
+  const options = {
+    stroke: color,
+    strokeWidth: width,
+  };
 
   const vertices: [number, number][] = [
     [centerX, y1],
@@ -26,19 +34,19 @@ export function createElement(
 
   switch (type) {
     case "line":
-      roughElement = generator.line(x1, y1, x2, y2);
+      roughElement = generator.line(x1, y1, x2, y2, options);
       break;
 
     case "rectangle":
-      roughElement = generator.rectangle(x1, y1, x2 - x1, y2 - y1);
+      roughElement = generator.rectangle(x1, y1, x2 - x1, y2 - y1, options);
       break;
 
     case "circle":
-      roughElement = generator.circle(centerX, centerY, diameter);
+      roughElement = generator.circle(centerX, centerY, diameter, options);
       break;
 
     case "diamond":
-      roughElement = generator.polygon(vertices);
+      roughElement = generator.polygon(vertices, options);
       break;
     default:
       roughElement = null;
@@ -55,6 +63,9 @@ export function createElement(
     draw: (ctx) => {
       switch (type) {
         case "line":
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 10;
+
           ctx.beginPath();
           ctx.moveTo(x1, y1);
           ctx.lineTo(x2, y2);
@@ -62,16 +73,25 @@ export function createElement(
           break;
 
         case "rectangle":
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 10;
+
           ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
           break;
 
         case "circle":
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 10;
+
           ctx.beginPath();
           ctx.arc(centerX, centerY, diameter / 2, 0, 2 * Math.PI);
           ctx.stroke();
           break;
 
         case "diamond":
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 10;
+
           ctx.beginPath();
           ctx.moveTo(centerX, y1);
           ctx.lineTo(x2, centerY);

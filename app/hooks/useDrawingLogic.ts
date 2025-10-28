@@ -13,6 +13,7 @@ import {
   adjustmentRequired,
 } from "../utils/canvasUtils";
 import usePressedKeys from "./usePressedKeys";
+import { useStyleStore } from "../store/useStyles";
 
 export default function useDrawingLogic(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -31,6 +32,8 @@ export default function useDrawingLogic(
     x: 0,
     y: 0,
   });
+
+  const { color, width } = useStyleStore();
 
   const pressedKeys = usePressedKeys();
 
@@ -81,7 +84,16 @@ export default function useDrawingLogic(
       case "rectangle":
       case "circle":
       case "diamond":
-        elementsCopy[oldElementId] = createElement(x1, y1, x2, y2, type, id);
+        elementsCopy[oldElementId] = createElement(
+          x1,
+          y1,
+          x2,
+          y2,
+          type,
+          color,
+          width,
+          id
+        );
         break;
 
       case "selection":
@@ -105,7 +117,16 @@ export default function useDrawingLogic(
 
         const textHeight = 24 * scale;
         elementsCopy[oldElementId] = {
-          ...createElement(x1, y1, x1 + textWidth, y1 + textHeight, type, id),
+          ...createElement(
+            x1,
+            y1,
+            x1 + textWidth,
+            y1 + textHeight,
+            type,
+            color,
+            width,
+            id
+          ),
           text: options.text,
         };
         break;
@@ -146,7 +167,7 @@ export default function useDrawingLogic(
       tool === "pencil" ||
       tool === "text"
     ) {
-      const newElement = createElement(x, y, x, y, tool);
+      const newElement = createElement(x, y, x, y, tool, color, width);
 
       setSelectedElement(newElement);
       setElements((prevElements) => [...prevElements, newElement]);

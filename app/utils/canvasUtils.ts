@@ -55,6 +55,9 @@ export function drawElement(
       break;
 
     case "pencil":
+      context.fillStyle = "white";
+      context.lineWidth = 10;
+
       const stroke = getSvgPathFromStroke(
         getStroke(element.points!, { size: 8 })
       );
@@ -62,6 +65,9 @@ export function drawElement(
       break;
 
     case "text":
+      context.fillStyle = "white";
+      context.lineWidth = 10;
+
       context.textBaseline = "top";
       context.font = `${24 * scale}px sans-serif`;
       context.fillText(element.text ?? "", element.x1, element.y1);

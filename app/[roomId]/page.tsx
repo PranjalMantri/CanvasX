@@ -9,6 +9,9 @@ import useDrawingLogic from "../hooks/useDrawingLogic";
 import useSocketSync from "../hooks/useSocketSync";
 import ToolBar from "../components/Toolbar";
 import { drawElement } from "../utils/canvasUtils";
+import Navbar from "../components/Navbar";
+import { useStyleStore } from "../store/useStyles";
+import { UtilityBar } from "../components/UtilityBar";
 
 export default function HomePage({
   params,
@@ -21,6 +24,8 @@ export default function HomePage({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [scale, setScale] = useState(1);
   const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
+
+  const { color, setColor, width, setWidth } = useStyleStore();
 
   const dimensions = useWindowResize();
   const {
@@ -60,9 +65,6 @@ export default function HomePage({
     const scaledOffsetX = (scaledWidth - dimensions.width) / 2;
     const scaledOffsetY = (scaledHeight - dimensions.height) / 2;
     setScaleOffset({ x: scaledOffsetX, y: scaledOffsetY });
-
-    context.strokeStyle = "black";
-    context.lineWidth = 2;
 
     context.clearRect(0, 0, dimensions.width, dimensions.height);
 
@@ -110,27 +112,13 @@ export default function HomePage({
 
   return (
     <div>
-      <ToolBar tool={tool} setTool={setTool} onUndo={undo} onRedo={redo} />
-      <div className="absolute bottom-10 left-24 z-2">
-        <button style={{ padding: "4px" }} onClick={() => onZoom(-0.1)}>
-          -
-        </button>
-        <span
-          style={{ padding: "4px", cursor: "pointer" }}
-          onClick={() => setScale(1)}
-        >
-          {new Intl.NumberFormat("en-GB", { style: "percent" }).format(scale)}
-        </span>
-        <button style={{ padding: "4px" }} onClick={() => onZoom(0.1)}>
-          +
-        </button>
-      </div>
+      <Navbar />
+      <ToolBar tool={tool} setTool={setTool} />
       {action === "writing" ? (
         <textarea
           ref={textAreaRef}
           onBlur={handleBlur}
           style={{
-            position: "fixed",
             top:
               (selectedElement?.y1 ?? 0) +
               2 * scale +
@@ -140,16 +128,17 @@ export default function HomePage({
               (selectedElement?.x1 ?? 0) * scale +
               panOffset.x * scale -
               scaleOffset.x,
-            font: `${24 * scale}px sans-serif`,
-            margin: 0,
-            padding: 0,
-            border: 0,
-            outline: 0,
-            overflow: "hidden",
-            whiteSpace: "pre",
-            background: "transparent",
-            zIndex: 2,
+            fontSize: `${24 * scale}px`,
+            color: color,
           }}
+          className="
+          fixed
+          m-0 p-0 border-0 outline-none
+          overflow-hidden whitespace-pre
+          bg-transparent
+          z-2
+          font-sans
+          "
         />
       ) : null}
       <canvas
@@ -159,8 +148,19 @@ export default function HomePage({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        className="block"
+        className="block absolute z-1 bg-[#2C2C2C]"
         style={{ position: "absolute", zIndex: 1 }}
+      />
+      <UtilityBar
+        onUndo={undo}
+        onRedo={redo}
+        activeColor={color}
+        onColorChange={setColor}
+        strokeWidth={width}
+        onStrokeWidthChange={setWidth}
+        scale={scale}
+        setScale={setScale}
+        onZoom={onZoom}
       />
     </div>
   );
