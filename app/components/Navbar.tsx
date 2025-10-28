@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,20 +10,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import HelpDialog from "./HelpDialog";
 
 function Navbar() {
-  const [shareLink, setShareLink] = useState("");
   const [isCopied, setIsCopied] = useState(false);
+  const [shareLink, setShareLink] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setShareLink(window.location.href);
-    }
+    // Only set shareLink on client side after hydration
+    const link = typeof window !== "undefined" ? window.location.href : "";
+    setShareLink(link);
   }, []);
 
   return (
